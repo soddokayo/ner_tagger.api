@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
+from starlette.responses import FileResponse
+from starlette.staticfiles import StaticFiles
 
 from ner_tagger import ner_tagger
 from crime_tagger import crime_tagger
@@ -21,8 +23,9 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
+app.mount("/static", StaticFiles(directory="build/static"))
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"msg": "Usage: post '/api/ner' with json 'sent'"}
 
@@ -44,3 +47,7 @@ async def api_crime(query:Query):
     res_crime = crime_tagger(query.sent)
     print(res_ner, res_crime)
     return JSONResponse(content=jsonable_encoder(res_ner+res_crime))
+
+@app.get("/")
+def index():
+    return FileResponse("build/index.html")
